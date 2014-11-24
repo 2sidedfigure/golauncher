@@ -1,3 +1,5 @@
+// Package thunder provides a means to control USB connected Dream Cheeky
+// Thunder Launchers (http://dreamcheeky.com/thunder-missile-launcher).
 package thunder
 
 import (
@@ -20,11 +22,14 @@ const (
 	LED_ON
 )
 
+// ThunderLauncher provides funcs to control a USB connected Thunder Launcher.
 type ThunderLauncher struct {
 	device *usb.Device
 	ledOn  bool
 }
 
+// GetConnectedThunderLaunchers returns a slice of *ThunderLaunchers, each
+// member of the slice corresponding to a connected Thunder Launcher.
 func GetConnectedThunderLaunchers() ([]*ThunderLauncher, error) {
 	ctx := usb.NewContext()
 	//defer ctx.Close()
@@ -55,6 +60,7 @@ func newThunderLauncher(device *usb.Device) *ThunderLauncher {
 	return tl
 }
 
+// Close the USB connection to the Thunder Launcher.
 func (tl *ThunderLauncher) Close() error {
 	return tl.device.Close()
 }
@@ -68,6 +74,7 @@ func (tl *ThunderLauncher) setLed(state byte) error {
 	return tl.control([]byte{3, state})
 }
 
+// Turn off the Thunder Launcher's LED.
 func (tl *ThunderLauncher) LedOff() error {
 	err := tl.setLed(LED_OFF)
 
@@ -78,6 +85,7 @@ func (tl *ThunderLauncher) LedOff() error {
 	return err
 }
 
+// Turn on the Thunder Launcher's LED.
 func (tl *ThunderLauncher) LedOn() error {
 	err := tl.setLed(LED_ON)
 
@@ -92,26 +100,33 @@ func (tl *ThunderLauncher) do(action byte) error {
 	return tl.control([]byte{2, action})
 }
 
+// Down starts moving the Thunder Launcher down.
 func (tl *ThunderLauncher) Down() error {
 	return tl.do(DOWN)
 }
 
+// Up starts moving the Thunder Launcher up.
 func (tl *ThunderLauncher) Up() error {
 	return tl.do(UP)
 }
 
+// Left starts moving the Thunder Launcher left.
 func (tl *ThunderLauncher) Left() error {
 	return tl.do(LEFT)
 }
 
+// Right starts moving the Thunder Launcher right.
 func (tl *ThunderLauncher) Right() error {
 	return tl.do(RIGHT)
 }
 
+// Fire starts the process of firing the Thunder Launcher.
 func (tl *ThunderLauncher) Fire() error {
 	return tl.do(FIRE)
 }
 
+// Stop ceases the last command sent to the Thunder Launcher. Only LedOff and
+// LedOn don't require Stop to be called after their invocation.
 func (tl *ThunderLauncher) Stop() error {
 	return tl.do(STOP)
 }
