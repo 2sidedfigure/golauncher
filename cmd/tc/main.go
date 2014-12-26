@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -50,6 +51,10 @@ func (ut *UnbufferedTTY) End() error {
 }
 
 func main() {
+	var pollInterval time.Duration
+	flag.DurationVar(&pollInterval, "poll", 15*time.Millisecond, "stdin poll interval")
+	flag.Parse()
+
 	tl, err := thunder.GetConnectedThunderLaunchers()
 	if err != nil {
 		fmt.Println("There was an error looking for connected launchers: ", err)
@@ -89,7 +94,7 @@ func main() {
 
 	fmt.Println("Listening for input...")
 	for {
-		t := time.NewTicker(25 * time.Millisecond)
+		t := time.NewTicker(pollInterval)
 
 		select {
 		case b := <-input:
