@@ -121,6 +121,7 @@ func (tl *ThunderLauncher) Right() error {
 }
 
 // Fire starts the process of firing the Thunder Launcher.
+// BUG(ryan): Need to add the appropriate timing so Fire will perform a "complete" fire
 func (tl *ThunderLauncher) Fire() error {
 	return tl.do(FIRE)
 }
