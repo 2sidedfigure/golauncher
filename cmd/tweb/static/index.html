@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Thunder</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <script type="text/javascript">
+            var key = function() {
+                var msg = [];
+
+                msg[37] = "LEFT";
+                msg[38] = "UP";
+                msg[39] = "RIGHT";
+                msg[40] = "DOWN";
+
+                this.msg = msg;
+            };
+
+            key.prototype.press = function(e) {
+                var code = (e.keyCode || e.charCode);
+                this.send(code);
+            };
+
+            key.prototype.release = function(e) {
+                this.send();
+            };
+
+            key.prototype.send = function(code) {
+                if (!this.ws || this.ws.readyState != 1) {
+                    return;
+                }
+
+                var msg = code && this.msg[code];
+
+                if (!msg) {
+                    if (this.isDown) {
+                        this.ws.send("STOP");
+                        this.isDown = false;
+                    }
+                } else {
+                    if (!this.isDown) {
+                        this.ws.send(msg)
+                        this.isDown = true
+                    }
+                }
+            };
+
+            key.prototype.connect = function() {
+                var ws = new WebSocket("ws://"+location.host+"/control");
+
+                ws.onopen = function(e) {
+                    window.onkeydown = this.press.bind(this);
+                    window.onkeyup = this.release.bind(this);
+                    console.log("ready!");
+                }.bind(this);
+
+                ws.onclose = function(e) {
+                    window.onkeydown = window.onkeyup = null;
+                };
+
+                this.ws = ws;
+            };
+
+            var k = new key();
+            k.connect();
+
+        </script>
+    </body>
+</html>
