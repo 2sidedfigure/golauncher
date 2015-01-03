@@ -11,6 +11,7 @@ import (
 func main() {
 	var (
 		DEBUG  bool
+		local  bool
 		listen string
 	)
 
@@ -38,11 +39,12 @@ func main() {
 				}
 			}
 
-			log.Fatal(Listen(listen, launcher))
+			log.Fatal(Listen(listen, launcher, local))
 		},
 	}
 
 	cmd.Flags().BoolVarP(&DEBUG, "debug", "d", false, "Debug mode doesn't require a connected Thunder Launcher")
+	cmd.Flags().BoolVarP(&local, "local", "l", false, "Use local static assets instead of those packaged with the binary")
 	cmd.Flags().StringVarP(&listen, "http", "b", ":8080", "The address and port to bind the HTTP interface to")
 
 	cmd.Execute()

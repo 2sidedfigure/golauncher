@@ -10,7 +10,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 )
 
-func Listen(address string, launcher thunder.Launcher) error {
+func Listen(address string, launcher thunder.Launcher, useLocalAssets bool) error {
 	mux := http.NewServeMux()
 
 	mux.Handle("/control", websocket.Handler(func(ws *websocket.Conn) {
@@ -53,7 +53,7 @@ func Listen(address string, launcher thunder.Launcher) error {
 		launcher.Stop()
 		launcher.LedOff()
 	}))
-	mux.Handle("/", http.FileServer(FS(false)))
+	mux.Handle("/", http.FileServer(FS(useLocalAssets)))
 
 	return http.ListenAndServe(address, mux)
 }
