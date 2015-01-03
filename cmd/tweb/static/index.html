@@ -5,12 +5,173 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Thunder</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            * {
+                padding: 0;
+                margin: 0;
+            }
+
+            body {
+                background-color: #fff;
+                height: 100%;
+                width: 100%;
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            }
+
+            dt {
+                display: none;
+            }
+
+            a {
+                display: block;
+                text-decoration: none;
+                padding: 1em;
+                text-align: center;
+                color: #fff;
+                line-height: 1;
+                font-weight: 100;
+                font-size: 1.5em;
+            }
+
+            a span {
+                background-repeat: no-repeat;
+                background-position: left center;
+                background-size: contain;
+                padding-left: 1.5em;
+            }
+
+            #connection a {
+                background: #25b133;
+            }
+
+            #connection.disconnected a {
+                background: #999;
+            }
+
+            #connection a span {
+                background-image: url("power.svg");
+            }
+
+            ul {
+                list-style-type: none;
+            }
+
+            #controls {
+                position: absolute;
+                top: 4.5em;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+            }
+
+            #action {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+
+            #fire {
+                background: #d00;
+            }
+
+            #fire a span {
+                background-image: url("fire.svg");
+            }
+
+            #direction {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 4.5em;
+            }
+
+            #direction > svg {
+                height: 100%;
+                width: 100%;
+            }
+
+            #direction > svg > g > g > line,
+            #direction > svg circle {
+                fill: none;
+                stroke: #999;
+                stroke-width: .25;
+                stroke-linecap: round;
+                stroke-miterlimit: 10;
+            }
+
+            .direction .hit {
+                fill: #fff;
+                fill-opacity: 0;
+                cursor: pointer;
+            }
+
+            #controls:not(.disabled) .direction:hover .hit {
+                fill: #999;
+                fill-opacity: .15;
+            }
+
+            #controls.disabled .direction line,
+            #controls.disabled circle {
+                stroke: #f0f0f0;
+            }
+
+            #controls.disabled #fire {
+                background: #f0f0f0;
+            }
+
+        </style>
     </head>
     <body>
+        <dl>
+            <dt>Status</dt>
+            <dd id="connection" class="disconnected"><a href="#"><span>Disconnected</span></a></dd>
+        </dl>
+        <div id="controls" class="disabled">
+            <div id="direction">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 62 62" >
+                    <circle cx="28.83" cy="28.83" r="24.3" />
+                    <g>
+                        <g id="up" class="direction">
+                            <path class="hit" d="M28.83,28.83L49.548,8.112c-11.44-11.441-29.995-11.441-41.436,0L28.83,28.83z" />
+                            <line x1="28.83" y1="0" x2="28.83" y2="28.83" />
+                            <line x1="24.506" y1="12.905" x2="33.154" y2="12.905" />
+                            <line x1="24.506" y1="18.945" x2="33.154" y2="18.945" />
+                        </g>
+                        <g id="left" class="direction">
+                            <path class="hit" d="M28.83,28.83L8.112,8.112c-11.441,11.44-11.441,29.995,0,41.436L28.83,28.83z" />
+                            <line x1="0" y1="28.83" x2="28.83" y2="28.83" />
+                            <line x1="12.905" y1="33.154" x2="12.905" y2="24.506" />
+                            <line x1="18.945" y1="33.154" x2="18.945" y2="24.506" />
+                        </g>
+                        <g id="down" class="direction">
+                            <path class="hit" d="M28.83,28.83L8.112,49.548c11.44,11.441,29.995,11.441,41.436,0L28.83,28.83z" />
+                            <line x1="28.83" y1="57.66" x2="28.83" y2="28.83" />
+                            <line x1="33.154" y1="44.755" x2="24.506" y2="44.755" />
+                            <line x1="33.154" y1="38.715" x2="24.506" y2="38.715" />
+                        </g>
+                        <g id="right" class="direction">
+                            <path class="hit" d="M28.83,28.83l20.718,20.718c11.441-11.44,11.441-29.995,0-41.436L28.83,28.83z" />
+                            <line x1="57.66" y1="28.83" x2="28.83" y2="28.83" />
+                            <line x1="44.755" y1="24.506" x2="44.755" y2="33.154" />
+                            <line x1="38.715" y1="24.506" x2="38.715" y2="33.154" />
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <ul id="action">
+                <li id="fire"><a href="#"><span>Fire</span></a></li>
+            </ul>
+        </div>
+
         <script type="text/javascript">
             var key = function() {
                 var msg = [];
 
+                msg[13] = "FIRE";
+                msg[32] = "FIRE";
                 msg[37] = "LEFT";
                 msg[38] = "UP";
                 msg[39] = "RIGHT";
@@ -54,6 +215,9 @@
                 ws.onopen = function(e) {
                     window.onkeydown = this.press.bind(this);
                     window.onkeyup = this.release.bind(this);
+                    document.querySelector("#controls").classList.remove("disabled");
+                    document.querySelector("#connection").classList.remove("disconnected");
+                    document.querySelector("#connection a span").innerText = "Connected";
                     console.log("ready!");
                 }.bind(this);
 
