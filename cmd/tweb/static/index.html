@@ -167,6 +167,114 @@
         </div>
 
         <script type="text/javascript">
+            var
+
+            // utiilies
+            extend = function(target) {
+                var merges = Array.prototype.slice.call(arguments, 1);
+
+                for (var i in merges) {
+                    var merge = merges[i];
+
+                    for (var p in merge) {
+                        target[p] = merge[p];
+                    }
+                }
+
+                return target;
+            },
+
+            EventEmitter = {
+                _listeners: {},
+
+                on: function(ev, func) {
+                    if (!this._listeners[ev]) {
+                        this._listeners[ev] = [];
+                    }
+
+                    this._listeners[ev].push(func);
+                },
+
+                off: function(ev, func) {
+                    if (!this._listeners[ev]) {
+                        return;
+                    }
+
+                    if (!func) {
+                        delete this._listeners[ev];
+                    } else {
+                        for (var f in this._listeners[ev]) {
+                            if (func === this._listeners[ev][f]) {
+                                this._listeners[ev].splice(f, 1);
+                            }
+                        }
+                    }
+                },
+
+                emit: function(ev) {
+                    if (!(this._listeners[ev] && this._listeners[ev].length)) {
+                        return;
+                    }
+
+                    var args = Array.prototype.slice.call(arguments, 1)
+                    for (var f in this._listeners[ev]) {
+                        this._listeners[ev][f].apply(this, args);
+                    }
+                }
+            },
+
+            // Launcher
+            Launcher = function() {
+                var me = this;
+
+                "fire left up right down quit stop".split(" ")
+                    .forEach(function(a) {
+                        me[a] = function() { return this._action(a); };
+                    });
+            };
+
+            Launcher.prototype = extend({
+                _action: function(a) {
+                    if (!(this.ws && this.ws.readyState == 1)) {
+                        return;
+                    }
+
+                    this.ws.send(a.toUpperCase());
+                },
+
+                connect: function() {
+                    if (this.ws) {
+                        return;
+                    }
+
+                    var ws = new WebSocket("ws://"+location.host+"/control");
+
+                    ws.onopen = function(e) {
+                        this.emit("connected");
+                    }.bind(this);
+
+                    ws.onclose = function(e) {
+                        this.emit("disconnected");
+                        this.disconnect();
+                    }.bind(this);
+
+                    ws.onerror = function(e) {
+                        this.emit("error");
+                        this.disconnect();
+                    }.bind(this);
+
+                    this.ws = ws;
+                },
+
+                disconnect: function() {
+                    if (this.ws) {
+                        this.ws.close();
+                        delete this.ws;
+                    }
+                }
+            }, EventEmitter);
+
+
             var key = function() {
                 var msg = [];
 
@@ -228,8 +336,109 @@
                 this.ws = ws;
             };
 
-            var k = new key();
-            k.connect();
+            // ConnectionToggle
+            var ConnectionToggle = function(el) {
+                this.el = el;
+                this._connected = !this.el.classList.contains("disconnected");
+
+                this.anchor = el.querySelector("a");
+                this.text = this.anchor.querySelector("span");
+
+                this.anchor.addEventListener("click", this.clickHandler.bind(this));
+            };
+
+            ConnectionToggle.prototype = extend({
+                state: function(connected) {
+                    if (connected || connected === false) {
+                        this._connected = connected;
+                        this.el.classList[ connected ? "remove" : "add" ]("disconnected");
+                        this.text.innerText = connected ? "Connected" : "Disconnected";
+                    } else {
+                        return this._connected;
+                    }
+                },
+
+                clickHandler: function() {
+                    if (this.state()) {
+                        this.emit("disconnect");
+                        this.state(false);
+                    } else {
+                        this.emit("connect");
+                    }
+                }
+            }, EventEmitter);
+
+            // Controls
+            var Controls = function(el) {
+                this.el = el;
+                this._enabled = !this.el.classList.contains("disabled");
+
+                var directions = el.querySelectorAll(".direction");
+
+                for (var i = 0; i < directions.length; i++) {
+                    directions[i].addEventListener("mousedown", this.generateDirectionHandler(directions[i]));
+                    directions[i].addEventListener("mouseup", this.upHandler.bind(this));
+                }
+
+                el.querySelector("#fire").addEventListener("click", this.fireHandler.bind(this));
+            };
+
+            Controls.prototype = extend({
+                enabled: function(enable) {
+                    if (enable || enable === false) {
+                        this._enabled = enable;
+                        this.el.classList[ enable ? "remove" : "add" ]("disabled");
+                    } else {
+                        return this._enabled;
+                    }
+                },
+
+                generateDirectionHandler: function(el) {
+                    return function(e) {
+                        if (!this.enabled()) {
+                            return;
+                        }
+
+                        this.emit("action", el.id);
+                    }.bind(this);
+                },
+
+                upHandler: function(e) {
+                    if (!this.enabled()) {
+                        return;
+                    }
+
+                    this.emit("action", "stop");
+                },
+
+                fireHandler: function(e) {
+                    if (!this.enabled()) {
+                        return;
+                    }
+
+                    this.emit("action", "fire");
+                }
+            }, EventEmitter);
+
+            // wire everything up
+            var
+            l = new Launcher(),
+            c = new Controls(document.querySelector("#controls")),
+            ct = new ConnectionToggle(document.querySelector("#connection"));
+
+            ct.on("connect", l.connect.bind(l));
+            ct.on("disconnect", l.disconnect.bind(l));
+            l.on("connected", function() {
+                    ct.state(true);
+                    c.enabled(true);
+                });
+            l.on("disconnected", function() {
+                    ct.state(false);
+                    c.enabled(false);
+                });
+            c.on("action", function(action) { l[action].call(l); });
+
+            l.connect();
 
         </script>
     </body>
