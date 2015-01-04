@@ -1,4 +1,4 @@
-package thunder
+package golauncher
 
 type Launcher interface {
 	Close() error

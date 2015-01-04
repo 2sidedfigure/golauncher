@@ -5,12 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	"try/thunder"
-
 	"code.google.com/p/go.net/websocket"
+	"github.com/2sidedfigure/golauncher"
 )
 
-func Listen(address string, launcher thunder.Launcher, useLocalAssets bool) error {
+func Listen(address string, launcher golauncher.Launcher, useLocalAssets bool) error {
 	mux := http.NewServeMux()
 
 	mux.Handle("/control", websocket.Handler(func(ws *websocket.Conn) {

@@ -1,4 +1,4 @@
-package thunder
+package golauncher
 
 import (
 	"log"

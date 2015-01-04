@@ -1,6 +1,6 @@
-// Package thunder provides a means to control USB connected Dream Cheeky
+// Package golauncher provides a means to control USB connected Dream Cheeky
 // Thunder Launchers (http://dreamcheeky.com/thunder-missile-launcher).
-package thunder
+package golauncher
 
 import (
 	"fmt"

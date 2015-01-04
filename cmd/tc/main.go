@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"time"
 
-	"try/thunder"
+	"github.com/2sidedfigure/golauncher"
 )
 
 var (
@@ -55,7 +55,7 @@ func main() {
 	flag.DurationVar(&pollInterval, "poll", 15*time.Millisecond, "stdin poll interval")
 	flag.Parse()
 
-	tl, err := thunder.GetConnectedThunderLaunchers()
+	tl, err := golauncher.GetConnectedThunderLaunchers()
 	if err != nil {
 		fmt.Println("There was an error looking for connected launchers: ", err)
 		return

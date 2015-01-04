@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/2sidedfigure/golauncher"
 	"github.com/spf13/cobra"
-
-	"try/thunder"
 )
 
 func main() {
@@ -20,12 +19,12 @@ func main() {
 		Short: "Starts the HTTP interface for a connected Thunder Launcher",
 		Long:  "Starts the HTTP interface for a connected Thunder Laucher",
 		Run: func(cmd *cobra.Command, args []string) {
-			var launcher thunder.Launcher
+			var launcher golauncher.Launcher
 
 			if DEBUG {
-				launcher = thunder.NewMockLauncher()
+				launcher = golauncher.NewMockLauncher()
 			} else {
-				tl, err := thunder.GetConnectedThunderLaunchers()
+				tl, err := golauncher.GetConnectedThunderLaunchers()
 				if err != nil {
 					log.Fatal("There was an error looking for connected launchers: ", err)
 				}
